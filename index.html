@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Money App</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    h1 { color: #333; margin-bottom: 16px; }
+    h2 { font-size: 15px; color: #555; margin-bottom: 12px; }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .box {
+      padding: 14px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .box-total { background: #e8f0fe; color: #1a73e8; }
+    .box-in    { background: #e6f4ea; color: #1e8e3e; }
+    .box-out   { background: #fce8e6; color: #d93025; }
+    .box-label { font-size: 12px; margin-bottom: 4px; }
+    .box-value { font-size: 18px; font-weight: bold; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: #888;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .tab.active {
+      color: #1a73e8;
+      border-bottom: 2px solid #1a73e8;
+      font-weight: bold;
+    }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    label { font-size: 12px; color: #888; display: block; margin-bottom: 4px; }
+
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-add { background: #1a73e8; color: white; white-space: nowrap; }
+    .btn-add-acc { background: #1a73e8; color: white; margin-top: 8px; }
+
+    .acc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .acc-card {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 14px;
+      border-left: 4px solid #1a73e8;
+    }
+
+    .acc-name { font-size: 13px; color: #555; }
+    .acc-bank { font-size: 11px; color: #aaa; margin-bottom: 6px; }
+    .acc-bal  { font-size: 20px; font-weight: bold; color: #333; }
+
+    .tx-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 14px;
+    }
+
+    .tx-item:last-child { border-bottom: none; }
+    .tx-left { display: flex; flex-direction: column; gap: 2px; }
+    .tx-desc { color: #333; }
+    .tx-meta { font-size: 12px; color: #aaa; }
+    .tx-right { display: flex; align-items: center; gap: 10px; }
+    .tx-amount { font-weight: bold; }
+    .amount-in  { color: #1e8e3e; }
+    .amount-out { color: #d93025; }
+
+    .btn-del {
+      background: none;
+      color: #ddd;
+      font-size: 16px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .btn-del:hover { color: #d93025; background: #fce8e6; }
+
+    .cat-badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: #f0f0f0;
+      color: #666;
+      margin-left: 6px;
+    }
+
+    .empty { color: #bbb; font-size: 14px; text-align: center; padding: 24px 0; }
+
+    .chart-wrap { position: relative; height: 260px; }
+
+    .acc-form-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    @media (max-width: 560px) {
+      .form-row { grid-template-columns: 1fr 1fr; }
+      .summary  { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>💰 Money App</h1>
+
+<!-- สรุปยอด -->
+<div class="card">
+  <div class="summary">
+    <div class="box box-total">
+      <div class="box-label">ยอดรวมทุกบัญชี</div>
+      <div class="box-value" id="totalAll">฿0</div>
+    </div>
+    <div class="box box-in">
+      <div class="box-label">รายรับทั้งหมด</div>
+      <div class="box-value" id="totalIn">฿0</div>
+    </div>
+    <div class="box box-out">
+      <div class="box-label">รายจ่ายทั้งหมด</div>
+      <div class="box-value" id="totalOut">฿0</div>
+    </div>
+  </div>
+
+  <!-- แสดงยอดแต่ละบัญชี -->
+  <div class="acc-grid" id="accGrid"></div>
+</div>
+
+<!-- แท็บ -->
+<div class="card">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('txTab')">รายการ</button>
+    <button class="tab" onclick="showTab('accTab')">บัญชี</button>
+    <button class="tab" onclick="showTab('chartTab')">กราฟ</button>
+  </div>
+
+  <!-- แท็บ: รายการ -->
+  <div id="txTab" class="section active">
+    <div class="form-row">
+      <div>
+        <label>รายละเอียด</label>
+        <input id="desc" placeholder="เช่น ค่าอาหาร" />
+      </div>
+      <div>
+        <label>จำนวน (฿)</label>
+        <input id="amount" type="number" placeholder="0" />
+      </div>
+      <div>
+        <label>ประเภท</label>
+        <select id="type">
+          <option value="in">รายรับ</option>
+          <option value="out">รายจ่าย</option>
+        </select>
+      </div>
+      <div>
+        <label>หมวดหมู่</label>
+        <select id="category">
+          <option value="อาหาร">🍜 อาหาร</option>
+          <option value="เดินทาง">🚗 เดินทาง</option>
+          <option value="บิล">💡 บิล</option>
+          <option value="ช้อปปิ้ง">🛍️ ช้อปปิ้ง</option>
+          <option value="เงินเดือน">💼 เงินเดือน</option>
+          <option value="อื่นๆ">📦 อื่นๆ</option>
+        </select>
+      </div>
+      <div>
+        <label>บัญชี</label>
+        <select id="txAcc"></select>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn-add" onclick="addTransaction()">+ บันทึกรายการ</button>
+    </div>
+    <div id="txList" style="margin-top:16px"></div>
+  </div>
+
+  <!-- แท็บ: บัญชี -->
+  <div id="accTab" class="section">
+    <div class="acc-form-row">
+      <div>
+        <label>ชื่อบัญชี</label>
+        <input id="accName" placeholder="เช่น บัญชีออมทรัพย์" />
+      </div>
+      <div>
+        <label>ธนาคาร</label>
+        <select id="accBank">
+          <option>SCB</option>
+          <option>KBANK</option>
+          <option>BBL</option>
+          <option>KTB</option>
+          <option>BAY</option>
+          <option>GSB</option>
+        </select>
+      </div>
+      <div>
+        <label>ยอดเริ่มต้น (฿)</label>
+        <input id="accBalance" type="number" placeholder="0" />
+      </div>
+    </div>
+    <button class="btn-add-acc" onclick="addAccount()">+ เพิ่มบัญชี</button>
+    <div id="accList" style="margin-top:16px"></div>
+  </div>
+
+  <!-- แท็บ: กราฟ -->
+  <div id="chartTab" class="section">
+    <h2>รายรับ vs รายจ่าย แยกตามหมวดหมู่</h2>
+    <div class="chart-wrap">
+      <canvas id="catChart" role="img" aria-label="กราฟแสดงรายจ่ายแยกตามหมวดหมู่">ไม่มีข้อมูล</canvas>
+    </div>
+    <h2 style="margin-top:20px">ภาพรวมรายรับ vs รายจ่าย</h2>
+    <div class="chart-wrap">
+      <canvas id="summaryChart" role="img" aria-label="กราฟเปรียบเทียบรายรับและรายจ่าย">ไม่มีข้อมูล</canvas>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // โหลดข้อมูลจาก localStorage ถ้ามี ถ้าไม่มีใช้ค่าเริ่มต้น
+  let accounts = JSON.parse(localStorage.getItem('accounts')) || [
+    { id: 1, name: 'บัญชีออมทรัพย์', bank: 'KBANK', balance: 50000 },
+    { id: 2, name: 'บัญชีเงินเดือน', bank: 'SCB',   balance: 25000 }
+  ];
+  let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+  let nextAccId = JSON.parse(localStorage.getItem('nextAccId')) || 3;
+  let catChartObj = null;
+  let sumChartObj = null;
+
+  // แสดงแท็บ
+  function showTab(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+    if (id === 'chartTab') renderCharts();
+  }
+
+  // เพิ่มบัญชี
+  function addAccount() {
+    let name    = document.getElementById('accName').value.trim();
+    let bank    = document.getElementById('accBank').value;
+    let balance = Number(document.getElementById('accBalance').value) || 0;
+    if (!name) { alert('กรุณาใส่ชื่อบัญชี'); return; }
+    accounts.push({ id: nextAccId++, name, bank, balance });
+    document.getElementById('accName').value    = '';
+    document.getElementById('accBalance').value = '';
+    render();
+  }
+
+  // เพิ่มรายการ
+  function addTransaction() {
+    let desc     = document.getElementById('desc').value.trim();
+    let amount   = Number(document.getElementById('amount').value);
+    let type     = document.getElementById('type').value;
+    let category = document.getElementById('category').value;
+    let accId    = Number(document.getElementById('txAcc').value);
+
+    if (!desc || !amount) { alert('กรุณากรอกข้อมูลให้ครบ'); return; }
+    if (!accId) { alert('กรุณาเพิ่มบัญชีก่อน'); return; }
+
+    let acc = accounts.find(a => a.id === accId);
+    acc.balance += type === 'in' ? amount : -amount;
+
+    transactions.push({ desc, amount, type, category, accId, date: new Date().toLocaleDateString('th-TH') });
+
+    document.getElementById('desc').value   = '';
+    document.getElementById('amount').value = '';
+    render();
+  }
+
+  // ลบรายการ
+  function deleteTx(index) {
+    let tx  = transactions[index];
+    let acc = accounts.find(a => a.id === tx.accId);
+    if (acc) acc.balance += tx.type === 'in' ? -tx.amount : tx.amount;
+    transactions.splice(index, 1);
+    render();
+  }
+
+  // บันทึกข้อมูลลง localStorage
+  function saveData() {
+    localStorage.setItem('accounts', JSON.stringify(accounts));
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+    localStorage.setItem('nextAccId', JSON.stringify(nextAccId));
+  }
+
+  // render ทั้งหมด
+  function render() {
+    saveData();
+    renderSummary();
+    renderAccGrid();
+    renderAccList();
+    renderTxList();
+    updateAccSelect();
+  }
+
+  function renderSummary() {
+    let totalIn  = transactions.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0);
+    let totalOut = transactions.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
+    let totalAll = accounts.reduce((s, a) => s + a.balance, 0);
+    document.getElementById('totalAll').textContent = '฿' + totalAll.toLocaleString();
+    document.getElementById('totalIn').textContent  = '฿' + totalIn.toLocaleString();
+    document.getElementById('totalOut').textContent = '฿' + totalOut.toLocaleString();
+  }
+
+  function renderAccGrid() {
+    let colors = ['#1a73e8','#1e8e3e','#f29900','#d93025','#9334e6','#00897b'];
+    document.getElementById('accGrid').innerHTML = accounts.map((a, i) => `
+      <div class="acc-card" style="border-left-color:${colors[i % colors.length]}">
+        <div class="acc-name">${a.name}</div>
+        <div class="acc-bank">${a.bank}</div>
+        <div class="acc-bal">฿${a.balance.toLocaleString()}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderAccList() {
+    document.getElementById('accList').innerHTML = accounts.length
+      ? accounts.map(a => `
+        <div class="tx-item">
+          <div class="tx-left">
+            <span class="tx-desc">${a.name}</span>
+            <span class="tx-meta">${a.bank}</span>
+          </div>
+          <span class="tx-amount">฿${a.balance.toLocaleString()}</span>
+        </div>
+      `).join('')
+      : '<p class="empty">ยังไม่มีบัญชี</p>';
+  }
+
+  function renderTxList() {
+    let listEl = document.getElementById('txList');
+    if (!transactions.length) {
+      listEl.innerHTML = '<p class="empty">ยังไม่มีรายการ</p>';
+      return;
+    }
+    let reversed = [...transactions].reverse();
+    listEl.innerHTML = reversed.map((t, i) => {
+      let acc      = accounts.find(a => a.id === t.accId);
+      let realIdx  = transactions.length - 1 - i;
+      return `
+        <div class="tx-item">
+          <div class="tx-left">
+            <span class="tx-desc">${t.desc}<span class="cat-badge">${t.category}</span></span>
+            <span class="tx-meta">${acc ? acc.name + ' · ' + acc.bank : ''} · ${t.date}</span>
+          </div>
+          <div class="tx-right">
+            <span class="tx-amount ${t.type === 'in' ? 'amount-in' : 'amount-out'}">
+              ${t.type === 'in' ? '+' : '-'}฿${t.amount.toLocaleString()}
+            </span>
+            <button class="btn-del" onclick="deleteTx(${realIdx})">✕</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updateAccSelect() {
+    let sel = document.getElementById('txAcc');
+    sel.innerHTML = accounts.map(a =>
+      `<option value="${a.id}">${a.name} (${a.bank})</option>`
+    ).join('');
+  }
+
+  function renderCharts() {
+    // กราฟหมวดหมู่
+    let cats    = ['อาหาร','เดินทาง','บิล','ช้อปปิ้ง','เงินเดือน','อื่นๆ'];
+    let catData = cats.map(c =>
+      transactions.filter(t => t.category === c && t.type === 'out')
+                  .reduce((s, t) => s + t.amount, 0)
+    );
+    let colors = ['#ff6384','#36a2eb','#ffce56','#4bc0c0','#9966ff','#ff9f40'];
+
+    if (catChartObj) catChartObj.destroy();
+    catChartObj = new Chart(document.getElementById('catChart'), {
+      type: 'doughnut',
+      data: {
+        labels: cats,
+        datasets: [{ data: catData, backgroundColor: colors }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'right' } }
+      }
+    });
+
+    // กราฟสรุป
+    let totalIn  = transactions.filter(t => t.type === 'in').reduce((s,t) => s + t.amount, 0);
+    let totalOut = transactions.filter(t => t.type === 'out').reduce((s,t) => s + t.amount, 0);
+
+    if (sumChartObj) sumChartObj.destroy();
+    sumChartObj = new Chart(document.getElementById('summaryChart'), {
+      type: 'bar',
+      data: {
+        labels: ['รายรับ', 'รายจ่าย'],
+        datasets: [{
+          data: [totalIn, totalOut],
+          backgroundColor: ['#1e8e3e', '#d93025']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  // เริ่มต้น
+  render();
+</script>
+
+</body>
+</html>
