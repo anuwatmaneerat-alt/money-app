@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
@@ -7,7 +7,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: sans-serif;
       background: #f5f5f5;
@@ -15,169 +14,74 @@
       max-width: 700px;
       margin: 0 auto;
     }
-
     h1 { color: #333; margin-bottom: 16px; }
     h2 { font-size: 15px; color: #555; margin-bottom: 12px; }
-
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .box {
-      padding: 14px;
-      border-radius: 10px;
-      text-align: center;
-    }
-
+    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    .box { padding: 14px; border-radius: 10px; text-align: center; }
     .box-total { background: #e8f0fe; color: #1a73e8; }
     .box-in    { background: #e6f4ea; color: #1e8e3e; }
     .box-out   { background: #fce8e6; color: #d93025; }
     .box-label { font-size: 12px; margin-bottom: 4px; }
-    .box-value { font-size: 18px; font-weight: bold; }
-
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 0;
-    }
-
-    .tab {
-      padding: 8px 16px;
-      font-size: 14px;
-      cursor: pointer;
-      border: none;
-      background: none;
-      color: #888;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-    }
-
-    .tab.active {
-      color: #1a73e8;
-      border-bottom: 2px solid #1a73e8;
-      font-weight: bold;
-    }
-
+    .box-value { font-size: 16px; font-weight: bold; }
+    @media (min-width: 680px) {
+  .form-row { 
+    /* เมื่อจอใหญ่ขึ้น ปรับสัดส่วนให้ช่องรายละเอียด และช่องจำนวน (รวมถึงสกุลเงิน) มีพื้นที่กว้างพอ */
+    grid-template-columns: 2fr 1.8fr 1fr 1.2fr 1.2fr auto; 
+    gap: 8px; 
+  }
+}
+    
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #eee; }
+    .tab { padding: 8px 16px; font-size: 14px; cursor: pointer; border: none; background: none; color: #888; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tab.active { color: #1a73e8; border-bottom: 2px solid #1a73e8; font-weight: bold; }
     .section { display: none; }
     .section.active { display: block; }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr auto;
-      gap: 8px;
-      align-items: end;
-    }
-
+    
+    /* ปรับ Form ให้รองรับ Mobile Responsive */
+    .form-row { 
+  display: grid; 
+  grid-template-columns: 1fr; /* บนมือถือหรือจอเล็กให้ตั้งเป็นแถวเดี่ยวแนวดิ่งก่อน */
+  gap: 16px; 
+  align-items: end; 
+}
+    
     label { font-size: 12px; color: #888; display: block; margin-bottom: 4px; }
-
-    input, select {
-      width: 100%;
-      padding: 8px 10px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-
-    button {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .btn-add { background: #1a73e8; color: white; white-space: nowrap; }
+    input, select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+    button { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    .btn-add { background: #1a73e8; color: white; white-space: nowrap; width: 100%; }
     .btn-add-acc { background: #1a73e8; color: white; margin-top: 8px; }
-
-    .acc-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .acc-card {
-      background: #f8f9fa;
-      border-radius: 10px;
-      padding: 14px;
-      border-left: 4px solid #1a73e8;
-    }
-
+    .btn-add-cat { background: #1a73e8; color: white; margin-top: 8px; }
+    .filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .filter-row input, .filter-row select { flex: 1; min-width: 120px; }
+    .acc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .acc-card { background: #f8f9fa; border-radius: 10px; padding: 14px; border-left: 4px solid #1a73e8; }
     .acc-name { font-size: 13px; color: #555; }
     .acc-bank { font-size: 11px; color: #aaa; margin-bottom: 6px; }
     .acc-bal  { font-size: 20px; font-weight: bold; color: #333; }
-
-    .tx-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid #f5f5f5;
-      font-size: 14px;
-    }
-
+    .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
     .tx-item:last-child { border-bottom: none; }
-    .tx-left { display: flex; flex-direction: column; gap: 2px; }
-    .tx-desc { color: #333; }
+    .tx-left { display: flex; flex-direction: column; gap: 2px; max-width: 70%; }
+    .tx-desc { color: #333; word-break: break-word; }
     .tx-meta { font-size: 12px; color: #aaa; }
     .tx-right { display: flex; align-items: center; gap: 10px; }
-    .tx-amount { font-weight: bold; }
+    .tx-amount { font-weight: bold; white-space: nowrap; }
     .amount-in  { color: #1e8e3e; }
     .amount-out { color: #d93025; }
-
-    .btn-del {
-      background: none;
-      color: #ddd;
-      font-size: 16px;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
+    .btn-del { background: none; color: #ddd; font-size: 16px; padding: 2px 6px; border-radius: 4px; }
     .btn-del:hover { color: #d93025; background: #fce8e6; }
-
-    .cat-badge {
-      display: inline-block;
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 20px;
-      background: #f0f0f0;
-      color: #666;
-      margin-left: 6px;
-    }
-
+    .cat-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: #f0f0f0; color: #666; margin-left: 4px; margin-top: 2px; }
     .empty { color: #bbb; font-size: 14px; text-align: center; padding: 24px 0; }
-
     .chart-wrap { position: relative; height: 260px; }
-
-    .acc-form-row {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
-      gap: 8px;
-    }
-
-    @media (max-width: 560px) {
-      .form-row { grid-template-columns: 1fr 1fr; }
-      .summary  { grid-template-columns: 1fr; }
-    }
+    .acc-form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+    .count-badge { font-size: 12px; color: #aaa; margin-bottom: 8px; }
+    .rate-box { background: #e8f0fe; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #1a73e8; margin-top: 12px; }
   </style>
 </head>
 <body>
 
 <h1>💰 Money App</h1>
 
-<!-- สรุปยอด -->
 <div class="card">
   <div class="summary">
     <div class="box box-total">
@@ -193,20 +97,16 @@
       <div class="box-value" id="totalOut">฿0</div>
     </div>
   </div>
-
-  <!-- แสดงยอดแต่ละบัญชี -->
   <div class="acc-grid" id="accGrid"></div>
 </div>
 
-<!-- แท็บ -->
 <div class="card">
   <div class="tabs">
-    <button class="tab active" onclick="showTab('txTab')">รายการ</button>
-    <button class="tab" onclick="showTab('accTab')">บัญชี</button>
-    <button class="tab" onclick="showTab('chartTab')">กราฟ</button>
+    <button class="tab active" onclick="showTab('txTab', this)">รายการ</button>
+    <button class="tab" onclick="showTab('accTab', this)">บัญชี</button>
+    <button class="tab" onclick="showTab('chartTab', this)">กราฟ</button>
   </div>
 
-  <!-- แท็บ: รายการ -->
   <div id="txTab" class="section active">
     <div class="form-row">
       <div>
@@ -214,39 +114,77 @@
         <input id="desc" placeholder="เช่น ค่าอาหาร" />
       </div>
       <div>
-        <label>จำนวน (฿)</label>
-        <input id="amount" type="number" placeholder="0" />
+        <label>จำนวน</label>
+        <div style="display:flex;gap:4px">
+          <input id="amount" type="number" step="any" placeholder="0" style="flex:1" oninput="updateCurrencyHint()" />
+          <select id="currency" onchange="updateCurrencyHint()" style="width:80px">
+            <option value="THB">฿ THB</option>
+            <option value="USD">$ USD</option>
+          </select>
+        </div>
+        <div id="currencyHint" style="font-size:11px;color:#1a73e8;margin-top:3px;min-height:16px"></div>
       </div>
       <div>
         <label>ประเภท</label>
-        <select id="type">
+        <select id="type" onchange="renderCategoryOptions()">
           <option value="in">รายรับ</option>
           <option value="out">รายจ่าย</option>
         </select>
       </div>
       <div>
-        <label>หมวดหมู่</label>
-        <select id="category">
-          <option value="อาหาร">🍜 อาหาร</option>
-          <option value="เดินทาง">🚗 เดินทาง</option>
-          <option value="บิล">💡 บิล</option>
-          <option value="ช้อปปิ้ง">🛍️ ช้อปปิ้ง</option>
-          <option value="เงินเดือน">💼 เงินเดือน</option>
-          <option value="อื่นๆ">📦 อื่นๆ</option>
-        </select>
-      </div>
+  <label>หมวดหมู่</label>
+  <select id="category"></select>
+</div>
+<div class="card" style="margin-top: 16px;">
+  <h2>➕ เพิ่มหมวดหมู่ใหม่</h2>
+  <div class="acc-form-row" style="margin-top: 8px;">
+    <div>
+      <label>ชื่อหมวดหมู่</label>
+      <input id="newCatName" placeholder="เช่น ค่าอาหาร, ขายผลไม้" />
+    </div>
+    <div>
+      <label>ประเภทหลัก</label>
+      <select id="newCatType">
+        <option value="in">รายรับ (Income)</option>
+        <option value="out">รายจ่าย (Expense)</option>
+      </select>
+    </div>
+  </div>
+  <button class="btn-add-cat" onclick="addNewCategory()">+ เพิ่มหมวดหมู่</button>
+</div>
       <div>
         <label>บัญชี</label>
         <select id="txAcc"></select>
       </div>
+      <div>
+        <button class="btn-add" onclick="addTransaction()">+ บันทึก</button>
+      </div>
     </div>
-    <div style="margin-top:10px">
-      <button class="btn-add" onclick="addTransaction()">+ บันทึกรายการ</button>
+
+    <div class="rate-box" id="rateBox">กำลังโหลดอัตราแลกเปลี่ยน...</div>
+
+    <div class="filter-row" style="margin-top:12px">
+      <input id="searchInput" placeholder="🔍 ค้นหารายการ..." oninput="renderTxList()" />
+      <select id="filterCat" onchange="renderTxList()">
+        <option value="">ทุกหมวดหมู่</option>
+        <option value="อาหาร">🍜 อาหาร</option>
+        <option value="เดินทาง">🚗 เดินทาง</option>
+        <option value="บิล">💡 บิล</option>
+        <option value="ช้อปปิ้ง">🛍️ ช้อปปิ้ง</option>
+        <option value="เงินเดือน">💼 เงินเดือน</option>
+        <option value="อื่นๆ">📦 อื่นๆ</option>
+      </select>
+      <select id="filterType" onchange="renderTxList()">
+        <option value="">ทุกประเภท</option>
+        <option value="in">รายรับ</option>
+        <option value="out">รายจ่าย</option>
+      </select>
     </div>
-    <div id="txList" style="margin-top:16px"></div>
+
+    <div id="txCount" class="count-badge"></div>
+    <div id="txList"></div>
   </div>
 
-  <!-- แท็บ: บัญชี -->
   <div id="accTab" class="section">
     <div class="acc-form-row">
       <div>
@@ -254,134 +192,340 @@
         <input id="accName" placeholder="เช่น บัญชีออมทรัพย์" />
       </div>
       <div>
-        <label>ธนาคาร</label>
-        <select id="accBank">
-          <option>SCB</option>
-          <option>KBANK</option>
-          <option>BBL</option>
-          <option>KTB</option>
-          <option>BAY</option>
-          <option>GSB</option>
-        </select>
+  <div>
+  <label>ธนาคาร / ประเภทบัญชี</label>
+  <input id="accBank" list="bankSuggestions" placeholder="เช่น KBANK, SCB, TrueWallet" />
+  
+  <datalist id="bankSuggestions">
+    <option value="KBANK">
+    <option value="SCB">
+    <option value="BBL">
+    <option value="KTB">
+    <option value="BAY">
+    <option value="GSB">
+    <option value="TTB">
+    <option value="TrueWallet">
+    <option value="เงินสด (Cash)">
+  </datalist>
+</div>
       </div>
       <div>
         <label>ยอดเริ่มต้น (฿)</label>
         <input id="accBalance" type="number" placeholder="0" />
       </div>
     </div>
-    <button class="btn-add-acc" onclick="addAccount()">+ เพิ่มบัญชี</button>
+    <button id="accountSaveBtn" class="btn-add-acc" onclick="addAccount()">+ เพิ่มบัญชี</button>
     <div id="accList" style="margin-top:16px"></div>
   </div>
 
-  <!-- แท็บ: กราฟ -->
   <div id="chartTab" class="section">
-    <h2>รายรับ vs รายจ่าย แยกตามหมวดหมู่</h2>
+    <h2>รายจ่ายแยกตามหมวดหมู่</h2>
     <div class="chart-wrap">
-      <canvas id="catChart" role="img" aria-label="กราฟแสดงรายจ่ายแยกตามหมวดหมู่">ไม่มีข้อมูล</canvas>
+      <canvas id="catChart"></canvas>
     </div>
     <h2 style="margin-top:20px">ภาพรวมรายรับ vs รายจ่าย</h2>
     <div class="chart-wrap">
-      <canvas id="summaryChart" role="img" aria-label="กราฟเปรียบเทียบรายรับและรายจ่าย">ไม่มีข้อมูล</canvas>
+      <canvas id="summaryChart"></canvas>
     </div>
   </div>
-
 </div>
 
 <script>
-  // โหลดข้อมูลจาก localStorage ถ้ามี ถ้าไม่มีใช้ค่าเริ่มต้น
-  let accounts = JSON.parse(localStorage.getItem('accounts')) || [
-    { id: 1, name: 'บัญชีออมทรัพย์', bank: 'KBANK', balance: 50000 },
-    { id: 2, name: 'บัญชีเงินเดือน', bank: 'SCB',   balance: 25000 }
+  // โครงสร้างบัญชีเปลี่ยนไปเก็บ initBalance (ยอดเริ่มต้น) แทนการบวกลบตรงๆ
+  let accounts     = JSON.parse(localStorage.getItem('accounts'))     || [
+    { id: 1, name: 'บัญชีออมทรัพย์', bank: 'KBANK', initBalance: 50000 },
+    { id: 2, name: 'บัญชีเงินเดือน', bank: 'SCB',   initBalance: 25000 }
   ];
   let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-  let nextAccId = JSON.parse(localStorage.getItem('nextAccId')) || 3;
-  let catChartObj = null;
-  let sumChartObj = null;
+  let defaultCategories = [
+    { name: 'เงินเดือน', type: 'in' },
+    { name: 'เงินปันผล/ดอกเบี้ย', type: 'in' },
+    { name: 'สลากออมสิน', type: 'in' },
+    { name: 'โอนเข้า', type: 'in' },
+    { name: 'เงินลงทุนเข้า', type: 'in' },
+    { name: 'ยางพารา', type: 'in' },
+    { name: 'ปาล์มน้ำมัน', type: 'in' },
+    { name: 'ผ่อนบ้าน', type: 'out' },
+    { name: 'ค่าใช้จ่ายส่วนตัว', type: 'out' },
+    { name: 'ลงทุน', type: 'out' },
+    { name: 'ค่าเดินทาง/ที่พัก', type: 'out' },
+    { name: 'ค่าใช้จ่ายสุขภาพ', type: 'out' },
+    { name: 'ค่าใช้จ่ายลูก', type: 'out' },
+    { name: 'โอนออก', type: 'out' },
+    { name: 'ค่าธรรมเนียม', type: 'out' },
+    { name: 'ประกันชีวิต/สังคม', type: 'out' },
+    { name: 'ภาษี/ประกันรถ', type: 'out' },
+    { name: 'ทำบุญ/บริจาค', type: 'out' },
+    { name: 'เกมส์/ของเล่น/lottery', type: 'out' },
+    { name: 'ซื้อของให้คนอื่น', type: 'out' },
+    { name: 'ค่าใช้จ่ายด้านการเกษตร (ปุ๋ย)', type: 'out' },
+    { name: 'ค่าบัตรเครดิต', type: 'out' },
+    { name: 'ค่าใช้จ่ายด้านการเกษตร (หญ้า แต่งทาง)', type: 'out' },
+    { name: 'ค่าใช้จ่ายด้านการเกษตร (จ้างเก็บ)', type: 'out' }
+  ];
+  let categories = mergeCategoryDefaults(JSON.parse(localStorage.getItem('categories')) || []);
+  let nextAccId    = JSON.parse(localStorage.getItem('nextAccId'))    || 3;
+  let editIndex    = -1;
+  let editAccId    = -1;
+  let usdRate      = null;
+  let catChartObj  = null;
+  let sumChartObj  = null;
+  
 
-  // แสดงแท็บ
-  function showTab(id) {
+  async function fetchRate() {
+    try {
+      let res  = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      let data = await res.json();
+      usdRate  = data.rates.THB;
+      document.getElementById('rateBox').textContent = '💱 อัตราแลกเปลี่ยนวันนี้: 1 USD = ' + usdRate.toFixed(2) + ' THB';
+    } catch(e) {
+      usdRate = 35;
+      document.getElementById('rateBox').textContent = '💱 1 USD = 35.00 THB (ค่าประมาณ ไม่สามารถเชื่อมต่ออินเทอร์เน็ตได้)';
+    }
+    updateCurrencyHint();
+  }
+
+  function updateCurrencyHint() {
+    let cur    = document.getElementById('currency').value;
+    let amount = Number(document.getElementById('amount').value);
+    let hint   = document.getElementById('currencyHint');
+    if (cur === 'USD' && amount > 0) {
+      let rate = usdRate || 35;
+      let thb = (amount * rate).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      hint.textContent = '= ฿' + thb + ' บาท';
+    } else {
+      hint.textContent = '';
+    }
+  }
+
+  function showTab(id, btn) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    event.target.classList.add('active');
+    btn.classList.add('active');
     if (id === 'chartTab') renderCharts();
   }
 
-  // เพิ่มบัญชี
+  function saveData() {
+    localStorage.setItem('accounts',     JSON.stringify(accounts));
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+    localStorage.setItem('categories',   JSON.stringify(categories));
+    localStorage.setItem('nextAccId',    JSON.stringify(nextAccId));
+  }
+
+  // ฟังก์ชันคำนวณยอดเงินคงเหลือปัจจุบันของแต่ละบัญชีแบบ Dynamic (แก้อาการยอดเงินเอ๋อ)
+  function getAccountBalance(accId) {
+    let acc = accounts.find(a => a.id === accId);
+    if (!acc) return 0;
+    let txSum = transactions.filter(t => t.accId === accId).reduce((sum, t) => {
+      return sum + (t.type === 'in' ? t.amount : -t.amount);
+    }, 0);
+    return acc.initBalance + txSum;
+  }
+
+  function mergeCategoryDefaults(savedCategories) {
+    let merged = [...defaultCategories];
+    if (Array.isArray(savedCategories)) {
+      savedCategories.forEach(c => {
+        if (!c || !c.name || !c.type) return;
+        let exists = merged.some(item => item.name === c.name && item.type === c.type);
+        if (!exists) merged.push({ name: c.name, type: c.type });
+      });
+    }
+    return merged;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function renderCategoryOptions() {
+    let categorySelect = document.getElementById('category');
+    let filterSelect = document.getElementById('filterCat');
+    let selectedCategory = categorySelect.value;
+    let selectedFilter = filterSelect.value;
+    let txType = document.getElementById('type').value;
+    let txCategories = categories.filter(c => c.type === txType);
+
+    categorySelect.innerHTML = txCategories.map(c =>
+      `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`
+    ).join('');
+
+    filterSelect.innerHTML = '<option value="">ทุกหมวดหมู่</option>' + categories.map(c =>
+      `<option value="${escapeHtml(c.name)}">${c.type === 'in' ? 'รายรับ' : 'รายจ่าย'} - ${escapeHtml(c.name)}</option>`
+    ).join('');
+
+    if (txCategories.some(c => c.name === selectedCategory)) categorySelect.value = selectedCategory;
+    if (categories.some(c => c.name === selectedFilter)) filterSelect.value = selectedFilter;
+  }
+
+  function addNewCategory() {
+    let name = document.getElementById('newCatName').value.trim();
+    let type = document.getElementById('newCatType').value;
+    if (!name) { alert('กรุณาใส่ชื่อหมวดหมู่'); return; }
+    if (categories.some(c => c.type === type && c.name.toLowerCase() === name.toLowerCase())) { alert('มีหมวดหมู่นี้แล้ว'); return; }
+
+    categories.push({ name, type });
+    document.getElementById('newCatName').value = '';
+    let currentType = document.getElementById('type').value;
+    if (currentType !== type) document.getElementById('type').value = type;
+    render();
+    document.getElementById('category').value = name;
+  }
+  // ===== บัญชี =====
   function addAccount() {
     let name    = document.getElementById('accName').value.trim();
     let bank    = document.getElementById('accBank').value;
     let balance = Number(document.getElementById('accBalance').value) || 0;
     if (!name) { alert('กรุณาใส่ชื่อบัญชี'); return; }
-    accounts.push({ id: nextAccId++, name, bank, balance });
+
+    if (editAccId >= 0) {
+      let acc = accounts.find(a => a.id === editAccId);
+      if (acc) { 
+        acc.name = name; 
+        acc.bank = bank; 
+        acc.initBalance = balance; // แก้ไขยอดเริ่มต้นแทน
+      }
+      editAccId = -1;
+      document.getElementById('accountSaveBtn').textContent = '+ เพิ่มบัญชี';
+    } else {
+      accounts.push({ id: nextAccId++, name, bank, initBalance: balance });
+    }
+
     document.getElementById('accName').value    = '';
-    document.getElementById('accBalance').value = '';
+document.getElementById('accBank').value    = ''; 
+document.getElementById('accBalance').value = '';
+render();
+  }
+
+  function editAccount(id) {
+    let acc = accounts.find(a => a.id === id);
+    if (!acc) return;
+    document.getElementById('accName').value    = acc.name;
+    document.getElementById('accBank').value    = acc.bank;
+    document.getElementById('accBalance').value = acc.initBalance;
+    editAccId = id;
+    document.getElementById('accountSaveBtn').textContent = '💾 บันทึกการแก้ไข';
+    document.getElementById('accName').focus();
+  }
+
+  function deleteAccount(id) {
+    if (!confirm('รายการทั้งหมดในบัญชีนี้จะถูกลบด้วย ยืนยันการลบ?')) return;
+    transactions = transactions.filter(t => t.accId !== id);
+    accounts     = accounts.filter(a => a.id !== id);
     render();
   }
 
-  // เพิ่มรายการ
+  // ===== รายการ =====
   function addTransaction() {
     let desc     = document.getElementById('desc').value.trim();
     let amount   = Number(document.getElementById('amount').value);
     let type     = document.getElementById('type').value;
     let category = document.getElementById('category').value;
     let accId    = Number(document.getElementById('txAcc').value);
+    let currency = document.getElementById('currency').value;
 
-    if (!desc || !amount) { alert('กรุณากรอกข้อมูลให้ครบ'); return; }
-    if (!accId) { alert('กรุณาเพิ่มบัญชีก่อน'); return; }
+    if (!desc || !amount || !category) { alert('กรุณากรอกข้อมูลให้ครบ'); return; }
+    if (!accId)           { alert('กรุณาเพิ่มบัญชีก่อน');   return; }
 
-    let acc = accounts.find(a => a.id === accId);
-    acc.balance += type === 'in' ? amount : -amount;
+    let currentRate = usdRate || 35;
+    let amountTHB = currency === 'USD' ? amount * currentRate : amount;
+    let currLabel = currency === 'USD' ? `$${amount} × ${currentRate.toFixed(2)}` : '';
 
-    transactions.push({ desc, amount, type, category, accId, date: new Date().toLocaleDateString('th-TH') });
+    if (editIndex >= 0) {
+      // แก้ไขรายการ (ยอดในบัญชีจะถูกคำนวณใหม่เองจากฟังก์ชัน getAccountBalance)
+      transactions[editIndex] = { 
+        ...transactions[editIndex], 
+        desc, 
+        amount: amountTHB, 
+        type, 
+        category, 
+        accId, 
+        currLabel,
+        orgAmount: amount, // เก็บค่าดั้งเดิมไว้แก้ไข
+        orgCurrency: currency 
+      };
+      editIndex = -1;
+      document.querySelector('.btn-add').textContent = '+ บันทึก';
+    } else {
+      let now  = new Date();
+      let date = now.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+      transactions.push({ 
+        desc, 
+        amount: amountTHB, 
+        type, 
+        category, 
+        accId, 
+        date, 
+        currLabel,
+        orgAmount: amount,
+        orgCurrency: currency
+      });
+    }
 
     document.getElementById('desc').value   = '';
     document.getElementById('amount').value = '';
+    document.getElementById('currency').value = 'THB';
+    document.getElementById('currencyHint').textContent = '';
     render();
   }
 
-  // ลบรายการ
+  function editTx(index) {
+    let t = transactions[index];
+    document.getElementById('desc').value     = t.desc;
+    // ดึงค่าดั้งเดิมมาแสดง (ถ้าไม่มีให้ใช้ยอด THB)
+    document.getElementById('amount').value   = t.orgAmount || t.amount;
+    document.getElementById('currency').value = t.orgCurrency || 'THB';
+    document.getElementById('type').value     = t.type;
+    renderCategoryOptions();
+    document.getElementById('category').value = t.category;
+    document.getElementById('txAcc').value    = t.accId;
+
+    editIndex = index;
+    document.querySelector('.btn-add').textContent = '💾 บันทึกการแก้ไข';
+    updateCurrencyHint();
+    document.getElementById('desc').focus();
+  }
+
   function deleteTx(index) {
-    let tx  = transactions[index];
-    let acc = accounts.find(a => a.id === tx.accId);
-    if (acc) acc.balance += tx.type === 'in' ? -tx.amount : tx.amount;
+    if (!confirm('ลบรายการนี้ใช่ไหม?')) return;
     transactions.splice(index, 1);
     render();
   }
 
-  // บันทึกข้อมูลลง localStorage
-  function saveData() {
-    localStorage.setItem('accounts', JSON.stringify(accounts));
-    localStorage.setItem('transactions', JSON.stringify(transactions));
-    localStorage.setItem('nextAccId', JSON.stringify(nextAccId));
-  }
-
-  // render ทั้งหมด
+  // ===== Render =====
   function render() {
     saveData();
     renderSummary();
     renderAccGrid();
     renderAccList();
+    renderCategoryOptions();
     renderTxList();
     updateAccSelect();
   }
 
   function renderSummary() {
-    let totalIn  = transactions.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0);
-    let totalOut = transactions.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
-    let totalAll = accounts.reduce((s, a) => s + a.balance, 0);
-    document.getElementById('totalAll').textContent = '฿' + totalAll.toLocaleString();
-    document.getElementById('totalIn').textContent  = '฿' + totalIn.toLocaleString();
-    document.getElementById('totalOut').textContent = '฿' + totalOut.toLocaleString();
+    let totalIn  = transactions.filter(t => t.type === 'in').reduce((s,t) => s + t.amount, 0);
+    let totalOut = transactions.filter(t => t.type === 'out').reduce((s,t) => s + t.amount, 0);
+    let totalAll = accounts.reduce((s,a) => s + getAccountBalance(a.id), 0);
+    
+    document.getElementById('totalAll').textContent = '฿' + totalAll.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('totalIn').textContent  = '฿' + totalIn.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('totalOut').textContent = '฿' + totalOut.toLocaleString(undefined, {maximumFractionDigits:2});
   }
 
   function renderAccGrid() {
     let colors = ['#1a73e8','#1e8e3e','#f29900','#d93025','#9334e6','#00897b'];
-    document.getElementById('accGrid').innerHTML = accounts.map((a, i) => `
+    document.getElementById('accGrid').innerHTML = accounts.map((a,i) => `
       <div class="acc-card" style="border-left-color:${colors[i % colors.length]}">
-        <div class="acc-name">${a.name}</div>
-        <div class="acc-bank">${a.bank}</div>
-        <div class="acc-bal">฿${a.balance.toLocaleString()}</div>
+        <div class="acc-name">${escapeHtml(a.name)}</div>
+        <div class="acc-bank">${escapeHtml(a.bank)}</div>
+        <div class="acc-bal">฿${getAccountBalance(a.id).toLocaleString(undefined, {maximumFractionDigits:2})}</div>
       </div>
     `).join('');
   }
@@ -391,36 +535,59 @@
       ? accounts.map(a => `
         <div class="tx-item">
           <div class="tx-left">
-            <span class="tx-desc">${a.name}</span>
-            <span class="tx-meta">${a.bank}</span>
+            <span class="tx-desc">${escapeHtml(a.name)}</span>
+            <span class="tx-meta">${escapeHtml(a.bank)} (ยอดต้น: ฿${a.initBalance.toLocaleString()})</span>
           </div>
-          <span class="tx-amount">฿${a.balance.toLocaleString()}</span>
+          <div class="tx-right">
+            <span class="tx-amount">฿${getAccountBalance(a.id).toLocaleString(undefined, {maximumFractionDigits:2})}</span>
+            <button class="btn-del" onclick="editAccount(${a.id})" title="แก้ไข">✏️</button>
+            <button class="btn-del" onclick="deleteAccount(${a.id})" title="ลบ">✕</button>
+          </div>
         </div>
       `).join('')
       : '<p class="empty">ยังไม่มีบัญชี</p>';
   }
 
   function renderTxList() {
+    let search     = document.getElementById('searchInput').value.toLowerCase();
+    let filterCat  = document.getElementById('filterCat').value;
+    let filterType = document.getElementById('filterType').value;
+
+    let filtered = [...transactions]
+      .map((t, i) => ({ ...t, realIdx: i }))
+      .reverse()
+      .filter(t => {
+        let matchSearch = t.desc.toLowerCase().includes(search);
+        let matchCat    = !filterCat  || t.category === filterCat;
+        let matchType   = !filterType || t.type     === filterType;
+        return matchSearch && matchCat && matchType;
+      });
+
+    document.getElementById('txCount').textContent = filtered.length > 0 ? 'แสดง ' + filtered.length + ' รายการ' : '';
+
     let listEl = document.getElementById('txList');
-    if (!transactions.length) {
-      listEl.innerHTML = '<p class="empty">ยังไม่มีรายการ</p>';
+    if (!filtered.length) {
+      listEl.innerHTML = '<p class="empty">ไม่พบรายการ</p>';
       return;
     }
-    let reversed = [...transactions].reverse();
-    listEl.innerHTML = reversed.map((t, i) => {
-      let acc      = accounts.find(a => a.id === t.accId);
-      let realIdx  = transactions.length - 1 - i;
+
+    listEl.innerHTML = filtered.map(t => {
+      let acc = accounts.find(a => a.id === t.accId);
       return `
         <div class="tx-item">
           <div class="tx-left">
-            <span class="tx-desc">${t.desc}<span class="cat-badge">${t.category}</span></span>
-            <span class="tx-meta">${acc ? acc.name + ' · ' + acc.bank : ''} · ${t.date}</span>
+            <span class="tx-desc">${escapeHtml(t.desc)}
+              <span class="cat-badge">${escapeHtml(t.category)}</span>
+              ${t.currLabel ? '<span class="cat-badge" style="background:#e8f0fe;color:#1a73e8">' + escapeHtml(t.currLabel) + '</span>' : ''}
+            </span>
+            <span class="tx-meta">${acc ? escapeHtml(acc.name) + ' · ' + escapeHtml(acc.bank) : 'ไม่พบบัญชี'} · ${t.date}</span>
           </div>
           <div class="tx-right">
             <span class="tx-amount ${t.type === 'in' ? 'amount-in' : 'amount-out'}">
-              ${t.type === 'in' ? '+' : '-'}฿${t.amount.toLocaleString()}
+              ${t.type === 'in' ? '+' : '-'}฿${t.amount.toLocaleString(undefined, {maximumFractionDigits:2})}
             </span>
-            <button class="btn-del" onclick="deleteTx(${realIdx})">✕</button>
+            <button class="btn-del" onclick="editTx(${t.realIdx})" title="แก้ไข">✏️</button>
+            <button class="btn-del" onclick="deleteTx(${t.realIdx})" title="ลบ">✕</button>
           </div>
         </div>
       `;
@@ -428,36 +595,23 @@
   }
 
   function updateAccSelect() {
-    let sel = document.getElementById('txAcc');
-    sel.innerHTML = accounts.map(a =>
-      `<option value="${a.id}">${a.name} (${a.bank})</option>`
+    document.getElementById('txAcc').innerHTML = accounts.map(a =>
+      `<option value="${a.id}">${escapeHtml(a.name)} (${escapeHtml(a.bank)})</option>`
     ).join('');
   }
 
   function renderCharts() {
-    // กราฟหมวดหมู่
-    let cats    = ['อาหาร','เดินทาง','บิล','ช้อปปิ้ง','เงินเดือน','อื่นๆ'];
-    let catData = cats.map(c =>
-      transactions.filter(t => t.category === c && t.type === 'out')
-                  .reduce((s, t) => s + t.amount, 0)
-    );
+    let cats = [...new Set([...categories.filter(c => c.type === 'out').map(c => c.name), ...transactions.filter(t => t.type === 'out').map(t => t.category)])].filter(Boolean);
+    let catData = cats.map(c => transactions.filter(t => t.category === c && t.type === 'out').reduce((s,t) => s + t.amount, 0));
     let colors = ['#ff6384','#36a2eb','#ffce56','#4bc0c0','#9966ff','#ff9f40'];
 
     if (catChartObj) catChartObj.destroy();
     catChartObj = new Chart(document.getElementById('catChart'), {
       type: 'doughnut',
-      data: {
-        labels: cats,
-        datasets: [{ data: catData, backgroundColor: colors }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'right' } }
-      }
+      data: { labels: cats, datasets: [{ data: catData, backgroundColor: cats.map((_, i) => colors[i % colors.length]) }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
     });
 
-    // กราฟสรุป
     let totalIn  = transactions.filter(t => t.type === 'in').reduce((s,t) => s + t.amount, 0);
     let totalOut = transactions.filter(t => t.type === 'out').reduce((s,t) => s + t.amount, 0);
 
@@ -465,11 +619,8 @@
     sumChartObj = new Chart(document.getElementById('summaryChart'), {
       type: 'bar',
       data: {
-        labels: ['รายรับ', 'รายจ่าย'],
-        datasets: [{
-          data: [totalIn, totalOut],
-          backgroundColor: ['#1e8e3e', '#d93025']
-        }]
+        labels: ['รายรับ','รายจ่าย'],
+        datasets: [{ data: [totalIn, totalOut], backgroundColor: ['#1e8e3e','#d93025'] }]
       },
       options: {
         responsive: true,
@@ -480,9 +631,18 @@
     });
   }
 
-  // เริ่มต้น
+  fetchRate();
   render();
 </script>
-
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
